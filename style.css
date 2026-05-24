@@ -299,13 +299,12 @@ body {
 }
 
 .marquee-inner.scrolling {
-  animation: track-scroll 8s ease-in-out infinite;
+  animation: track-scroll linear infinite;
 }
 
 @keyframes track-scroll {
-  0%, 15%  { transform: translateX(0); }
-  65%, 80% { transform: translateX(var(--scroll-px, 0)); }
-  100%     { transform: translateX(0); }
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(var(--cycle-w)); }
 }
 
 .player-controls {

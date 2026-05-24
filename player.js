@@ -44,9 +44,14 @@ const PlayerModule = (() => {
   function _onState(e) {
     const S = YT.PlayerState;
     if (e.data === S.ENDED)   { _next(); return; }
-    if (e.data === S.PLAYING) { playing = true;  _startTick(); }
-    if (e.data === S.PAUSED)  { playing = false; clearInterval(ticker); }
+    if (e.data === S.PLAYING) { playing = true;  _startTick(); _setMarquee(true); }
+    if (e.data === S.PAUSED)  { playing = false; clearInterval(ticker); _setMarquee(false); }
     _updateBtn();
+  }
+
+  function _setMarquee(on) {
+    const inner = document.querySelector('#player-track .marquee-inner');
+    if (inner) inner.classList.toggle('scrolling', on);
   }
 
   function _startTick() {
@@ -93,18 +98,25 @@ const PlayerModule = (() => {
   function _updateTrack() {
     const el = document.getElementById('player-track');
     if (!el) return;
-    const span = document.createElement('span');
-    span.className = 'marquee-inner';
-    span.textContent = playlist[idx]?.title || '—';
+    const title = playlist[idx]?.title || '—';
+
     el.innerHTML = '';
-    el.appendChild(span);
+    const inner = document.createElement('span');
+    inner.className = 'marquee-inner';
+    inner.textContent = title;
+    el.appendChild(inner);
+
     requestAnimationFrame(() => {
-      const overflow = span.offsetWidth - el.offsetWidth;
-      if (overflow > 0) {
-        span.style.setProperty('--scroll-px', `-${overflow}px`);
-        span.style.animationDuration = Math.max(4, Math.round(overflow / 20)) + 's';
-        span.classList.add('scrolling');
-      }
+      if (inner.scrollWidth <= el.clientWidth) return; // fits, no scroll
+
+      // Double the text with a separator — end wraps seamlessly into beginning
+      inner.textContent = title + '   ·   ' +
+                          title + '   ·   ';
+      requestAnimationFrame(() => {
+        const cycleW = inner.scrollWidth / 2;
+        inner.style.setProperty('--cycle-w', `-${cycleW}px`);
+        inner.style.animationDuration = Math.max(3, cycleW / 41) + 's';
+      });
     });
   }
 

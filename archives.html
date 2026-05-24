@@ -339,6 +339,7 @@
         card.className = 'archive-card';
         card.innerHTML = `
       ${s.image ? `<img src="${s.image}" alt="${s.title}" loading="lazy">` : ''}
+      ${s.audio ? `<audio controls src="${s.audio}" style="width:100%;margin-bottom:0.5rem;"></audio>` : ''}
       <div class="archive-type" style="color:${color}">${s.type}</div>
       <h3>${s.title}</h3>
       ${s.description ? `<p>${s.description}</p>` : ''}

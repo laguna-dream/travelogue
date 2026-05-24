@@ -47,12 +47,10 @@ function goToPlace(id) {
   window.open('map.html?place=' + encodeURIComponent(id), '_blank', 'noopener');
 }
 
-// Parse "may 23 2026" style dates → Date object
-const _MONTHS = {jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
+// Parse ISO dates (2026-05-23) → Date object
 function parseDate(str) {
   if (!str) return new Date(0);
-  const [m, d, y] = str.trim().toLowerCase().split(/\s+/);
-  return new Date(+y, _MONTHS[m?.slice(0,3)] ?? 0, +d);
+  return new Date(str.trim());
 }
 
 // Format seconds → m:ss

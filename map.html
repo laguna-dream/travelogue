@@ -443,21 +443,23 @@
         const sensoryWithImages = sensory.filter(s => s.image);
 
         sensory.forEach(s => {
-          // Find coords from a matching place
-          const ref = places?.find(p => p.area === s.place || p.id === s.place);
-          if (!ref?.lat) return;
-          const jitter = () => (Math.random() - 0.5) * 0.002;
+          let lat, lng;
+          if (s.lat != null && s.lng != null) {
+            lat = s.lat; lng = s.lng;
+          } else {
+            const ref = places?.find(p => p.area === s.place || p.id === s.place);
+            if (!ref?.lat) return;
+            const jitter = (Math.random() - 0.5) * 0.002;
+            lat = ref.lat + jitter; lng = ref.lng + jitter;
+          }
 
           if (!sensoryLayers[s.type]) {
             sensoryLayers[s.type] = L.layerGroup().addTo(leafMap);
           }
 
-          const m = L.marker([ref.lat + jitter(), ref.lng + jitter()], {
-            icon: makeSensoryMarker(s)
-          });
+          const m = L.marker([lat, lng], { icon: makeSensoryMarker(s) });
 
           if (s.image) {
-            // Click opens slideshow
             m.on('click', () => {
               openSlideshow(sensoryWithImages, sensoryWithImages.indexOf(s));
             });
@@ -467,6 +469,7 @@
           <div style="min-width:170px;">
             <div class="map-popup-type" style="color:${cfg.color}">${cfg.label}</div>
             <div class="map-popup-name">${s.title}</div>
+            ${s.audio ? `<audio controls src="${s.audio}" style="width:100%;margin:0.4rem 0;"></audio>` : ''}
             ${s.description ? `<div class="map-popup-note">${s.description}</div>` : ''}
             ${s.location ? `<div style="font-family:var(--font-mono);font-size:0.58rem;color:var(--ink-light);">${s.location}</div>` : ''}
           </div>`, { maxWidth: 240 });
