@@ -1,0 +1,47 @@
+{
+  "title": "Travelogue #1: mountains (for a change)",
+  "subtitle": "May–June 2026",
+  "region": "himachal",
+  "description": "notes from the mountains",
+  "places": {
+    "dharamkot": {
+      "color": "#b8898e"
+    },
+    "bir": {
+      "color": "#7a9ab8"
+    },
+    "andreta": {
+      "color": "#7aaa8a"
+    }
+  },
+  "playlist": [
+    {
+      "title": "Track Name — Artist",
+      "videoId": "REPLACE_WITH_YOUTUBE_ID"
+    },
+    {
+      "title": "Another Track — Artist",
+      "videoId": "REPLACE_WITH_YOUTUBE_ID"
+    }
+  ],
+  "ambient": [
+    {
+      "label": "forest",
+      "src": "assets/sounds/forest.mp3"
+    },
+    {
+      "label": "rain",
+      "src": "assets/sounds/rain.mp3"
+    },
+    {
+      "label": "wind",
+      "src": "assets/sounds/wind.mp3"
+    },
+    {
+      "label": "river",
+      "src": "assets/sounds/river.mp3"
+    }
+  ],
+  "reading": "Book Title — Author",
+  "watching": "Film or Show Title"
+}

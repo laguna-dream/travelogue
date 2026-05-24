@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>travelogue</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=JetBrains+Mono:wght@300;400&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .site-header {
+            background-image:
+                repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.18) 0px, rgba(255, 255, 255, 0.18) 1px, transparent 1px, transparent 5px),
+                repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.18) 0px, rgba(255, 255, 255, 0.18) 1px, transparent 1px, transparent 5px),
+                url('assets/images/header-mountains.png'),
+                linear-gradient(180deg, #c8d8e8 0%, #e0ccd4 60%, #c8b8c8 100%);
+            background-size: 5px 5px, 5px 5px, cover, cover;
+            background-position: 0 0, 0 0, bottom center, 0 0;
+            background-repeat: repeat, repeat, no-repeat, no-repeat;
+        }
+
+        .header-title {
+            color: #2a2228;
+            mix-blend-mode: multiply;
+        }
+
+        .header-sub {
+            color: #4a404a;
+            mix-blend-mode: multiply;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <header class="site-header" id="site-header">
+        <div class="header-text">
+            <div class="header-title" id="header-title">travelogue: mountains (for a change)</div>
+            <div class="header-sub" id="header-sub">May–June 2026</div>
+        </div>
+    </header>
+
+    <!-- NAV -->
+    <nav class="site-nav">
+        <a href="index.html" class="active" target="_blank" rel="noopener">
+            <svg class="nav-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2">
+                <path d="M2 3h10M2 7h7M2 11h5" />
+            </svg>
+            logs
+        </a>
+        <a href="map.html" target="_blank" rel="noopener">
+            <svg class="nav-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2">
+                <circle cx="7" cy="6" r="2.5" />
+                <path d="M7 1v1M7 11v2M1 6h1M12 6h1" />
+                <path d="M5 9.5C5 9.5 7 13 7 13s2-3.5 2-3.5" />
+            </svg>
+            maps
+        </a>
+        <a href="archives.html" target="_blank" rel="noopener">
+            <svg class="nav-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2">
+                <rect x="1" y="1" width="5" height="5" />
+                <rect x="8" y="1" width="5" height="5" />
+                <rect x="1" y="8" width="5" height="5" />
+                <rect x="8" y="8" width="5" height="5" />
+            </svg>
+            archives
+        </a>
+        <a href="about.html" target="_blank" rel="noopener">
+            <svg class="nav-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2">
+                <circle cx="7" cy="4.5" r="2" />
+                <path d="M2 13c0-2.76 2.24-5 5-5s5 2.24 5 5" />
+            </svg>
+            about
+        </a>
+    </nav>
+
+    <!-- PAGE BODY -->
+    <div class="page-body">
+
+        <!-- MAIN: dispatches -->
+        <main class="main-col">
+            <div class="place-filters" id="place-filters">
+                <button class="place-pill active" data-place="all">all</button>
+            </div>
+            <div id="dispatches-list"></div>
+        </main>
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar-col">
+
+            <!-- Music player -->
+            <div class="sidebar-section">
+                <div class="sidebar-label">travel playlist</div>
+                <div id="yt-player"></div>
+                <div class="player-track" id="player-track">Unforgiving Girl (She's Not An) - Car Seat Headrest</div>
+                <div class="player-controls">
+                    <button class="ctrl-btn" id="prev-btn" title="previous">←</button>
+                    <button class="ctrl-btn" id="play-btn" title="play / pause">▶</button>
+                    <button class="ctrl-btn" id="next-btn" title="next">→</button>
+                </div>
+                <div class="player-progress" id="player-progress">
+                    <div class="player-progress-fill" id="progress-fill" style="width:35%"></div>
+                </div>
+                <div class="player-time" id="player-time">1:24 / 4:02</div>
+                <!-- Track list -->
+                <div class="player-track-list" id="track-list" style="display:none">
+                    <div class="track-item playing">
+                        <span class="track-num">01</span>
+                        Chaudhary — Coke Studio
+                    </div>
+                    <div class="track-item">
+                        <span class="track-num">02</span>
+                        Paani Da Rang — Vicky Donor
+                    </div>
+                    <div class="track-item">
+                        <span class="track-num">03</span>
+                        Ik Kudi — Udta Punjab
+                    </div>
+                    <div class="track-item">
+                        <span class="track-num">04</span>
+                        Kesariya — Brahmastra
+                    </div>
+                    <div class="track-item">
+                        <span class="track-num">05</span>
+                        Add your tracks in config.json
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ambient -->
+            <div class="sidebar-section">
+                <div class="sidebar-label">ambient</div>
+                <div class="ambient-grid" id="ambient-grid">
+                    <!-- Hardcoded defaults — overridden by config.json if set -->
+                    <button class="ambient-btn" data-src="assets/sounds/forest.mp3">forest</button>
+                    <button class="ambient-btn" data-src="assets/sounds/rain.mp3">rain</button>
+                    <button class="ambient-btn" data-src="assets/sounds/wind.mp3">wind</button>
+                </div>
+            </div>
+
+            <!-- Media -->
+            <div class="sidebar-section">
+                <div class="sidebar-label">media</div>
+                <div id="media-list">
+                    <div class="media-item">
+                        <div class="media-title" id="media-reading">The Snow Leopard — Peter Matthiessen</div>
+                    </div>
+                    <div class="media-item">
+                        <div class="media-title" id="media-watching">— </div>
+                    </div>
+                </div>
+            </div>
+
+        </aside>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
+    <script src="data.js"></script>
+    <script src="player.js"></script>
+    <script>
+        let placesConfig = {};
+        let allDispatches = [];
+        let allPlaces = [];
+
+        async function init() {
+            const [config, dispatches, places] = await Promise.all([
+                loadJSON('config.json'),
+                loadJSON('dispatches.json'),
+                loadJSON('places.json'),
+            ]);
+
+            placesConfig = config?.places || {};
+            allDispatches = (dispatches || []).sort((a, b) => parseDate(b.date) - parseDate(a.date));
+            allPlaces = places || [];
+
+            applyPlaceColors(placesConfig);
+
+            // Header text
+            if (config?.title) document.getElementById('header-title').textContent = config.title;
+            if (config?.subtitle) document.getElementById('header-sub').textContent = config.subtitle;
+            document.title = config?.title || 'travelogue';
+
+            // Place filters
+            buildFilters();
+            renderDispatches(allDispatches);
+
+            // Player — init if playlist in config
+            if (config?.playlist?.length) {
+                PlayerModule.init(config.playlist);
+            }
+
+            // Ambient — override hardcoded defaults if config has entries
+            if (config?.ambient?.length) {
+                initAmbient(config.ambient);
+            } else {
+                initAmbientFromDOM();
+            }
+
+            // Media — override hardcoded defaults if config has values
+            if (config?.reading) document.getElementById('media-reading').textContent = config.reading;
+            if (config?.watching) document.getElementById('media-watching').textContent = config.watching;
+
+            // Track list — override hardcoded if config has playlist
+            if (config?.playlist?.length) buildTrackList(config.playlist);
+        }
+
+        function buildFilters() {
+            const container = document.getElementById('place-filters');
+            container.querySelector('[data-place="all"]').addEventListener('click', () => {
+                renderDispatches(allDispatches);
+                setActiveFilter('all');
+            });
+            Object.entries(placesConfig).forEach(([name]) => {
+                if (!allDispatches.some(d => d.place === name)) return;
+                const btn = document.createElement('button');
+                btn.className = 'place-pill';
+                btn.dataset.place = name;
+                btn.textContent = name;
+                btn.addEventListener('click', () => {
+                    renderDispatches(allDispatches.filter(d => d.place === name));
+                    setActiveFilter(name);
+                });
+                container.appendChild(btn);
+            });
+        }
+
+        function setActiveFilter(name) {
+            document.querySelectorAll('.place-pill').forEach(p =>
+                p.classList.toggle('active', p.dataset.place === name));
+        }
+
+        function renderDispatches(entries) {
+            const list = document.getElementById('dispatches-list');
+            if (!entries.length) {
+                list.innerHTML = '<p style="color:var(--ink-light);font-style:italic;padding:1rem 0;">No entries yet.</p>';
+                return;
+            }
+            list.innerHTML = '';
+            entries.forEach(d => {
+                const color = placesConfig[d.place]?.color || 'rgba(90,74,58,0.12)';
+                const bgColor = hexToRgba(color, 0.07);
+                let body = renderMarkdown(d.body || '');
+                body = processPlaceRefs(body, allPlaces);
+
+                const art = document.createElement('article');
+                art.className = 'dispatch';
+                art.id = d.id || '';
+                art.style.background = bgColor;
+                art.innerHTML = `
+      <div class="dispatch-meta">
+        ${d.date ? `<span class="dispatch-date">${d.date}</span>` : ''}
+        ${d.place ? `<span class="dispatch-place" style="color:${color}">${d.place}</span>` : ''}
+      </div>
+      <h2>${d.title || 'untitled'}</h2>
+      <div class="dispatch-body">${body}</div>
+    `;
+                list.appendChild(art);
+            });
+        }
+
+        // Convert hex color to rgba with alpha
+        function hexToRgba(hex, alpha) {
+            const r = parseInt(hex.slice(1, 3), 16);
+            const g = parseInt(hex.slice(3, 5), 16);
+            const b = parseInt(hex.slice(5, 7), 16);
+            return `rgba(${r},${g},${b},${alpha})`;
+        }
+
+        function buildTrackList(playlist) {
+            const el = document.getElementById('track-list');
+            el.innerHTML = '';
+            playlist.forEach((t, i) => {
+                const div = document.createElement('div');
+                div.className = 'track-item' + (i === 0 ? ' playing' : '');
+                div.dataset.idx = i;
+                div.innerHTML = `<span class="track-num">${String(i + 1).padStart(2, '0')}</span>${t.title}`;
+                div.addEventListener('click', () => {
+                    document.querySelectorAll('.track-item').forEach(x => x.classList.remove('playing'));
+                    div.classList.add('playing');
+                });
+                el.appendChild(div);
+            });
+        }
+
+        // Ambient from config
+        function initAmbient(sounds) {
+            const grid = document.getElementById('ambient-grid');
+            grid.innerHTML = '';
+            sounds.forEach(s => {
+                const audio = new Audio(s.src);
+                audio.loop = true; audio.volume = 0.35;
+                const btn = document.createElement('button');
+                btn.className = 'ambient-btn';
+                btn.textContent = s.label;
+                btn.addEventListener('click', () => toggleAmbient(btn, audio));
+                grid.appendChild(btn);
+            });
+        }
+
+        // Ambient from hardcoded DOM buttons
+        function initAmbientFromDOM() {
+            document.querySelectorAll('.ambient-btn[data-src]').forEach(btn => {
+                const audio = new Audio(btn.dataset.src);
+                audio.loop = true; audio.volume = 0.35;
+                btn.addEventListener('click', () => toggleAmbient(btn, audio));
+            });
+        }
+
+        function toggleAmbient(btn, audio) {
+            if (btn.classList.contains('on')) {
+                audio.pause(); audio.currentTime = 0;
+                btn.classList.remove('on');
+            } else {
+                audio.play().catch(() => { });
+                btn.classList.add('on');
+            }
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

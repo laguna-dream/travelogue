@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>maps — travelogue</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;1,400&family=JetBrains+Mono:wght@300;400&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    /* Map fills remaining height after header + nav */
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .site-header {
+      height: 100px;
+      /* smaller on map page */
+      background-image:
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.18) 0px, rgba(255, 255, 255, 0.18) 1px, transparent 1px, transparent 5px),
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.18) 0px, rgba(255, 255, 255, 0.18) 1px, transparent 1px, transparent 5px),
+        url('assets/images/header-mountains.png'),
+        linear-gradient(180deg, #c8d8e8 0%, #e0ccd4 60%, #c8b8c8 100%);
+      background-size: 5px 5px, 5px 5px, cover, cover;
+      background-position: 0 0, 0 0, bottom center, 0 0;
+      background-repeat: repeat, repeat, no-repeat, no-repeat;
+      --header-h: 100px;
+    }
+
+    .map-outer {
+      position: fixed;
+      top: calc(100px + var(--nav-h));
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Mapbox token notice */
+    .map-token-notice {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 500;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 2rem 2.5rem;
+      text-align: center;
+      max-width: 400px;
+    }
+
+    .map-token-notice h3 {
+      font-family: var(--font-serif);
+      font-weight: 400;
+      margin-bottom: 0.75rem;
+    }
+
+    .map-token-notice p {
+      font-family: var(--font-serif);
+      font-size: 0.9rem;
+      color: var(--ink-mid);
+      line-height: 1.6;
+    }
+
+    .map-token-notice code {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      background: var(--border-light);
+      padding: 0.1em 0.4em;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="header-text">
+      <div class="header-title">simar's travelogue</div>
+      <div class="header-sub">maps</div>
+    </div>
+  </header>
+
+  <!-- NAV -->
+  <nav class="site-nav">
+    <a href="index.html" target="_blank" rel="noopener">
+      <svg class="nav-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2">
+        <path d="M2 3h10M2 7h7M2 11h5" />
+      </svg>
+      logs
+    </a>
+    <a href="map.html" class="active" target="_blank" rel="noopener">
+      <svg class="nav-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2">
+        <circle cx="7" cy="6" r="2.5" />
+        <path d="M7 1v1M7 11v2M1 6h1M12 6h1" />
+        <path d="M5 9.5C5 9.5 7 13 7 13s2-3.5 2-3.5" />
+      </svg>
+      maps
+    </a>
+    <a href="archives.html" target="_blank" rel="noopener">
+      <svg class="nav-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2">
+        <rect x="1" y="1" width="5" height="5" />
+        <rect x="8" y="1" width="5" height="5" />
+        <rect x="1" y="8" width="5" height="5" />
+        <rect x="8" y="8" width="5" height="5" />
+      </svg>
+      archives
+    </a>
+    <a href="about.html" target="_blank" rel="noopener">
+      <svg class="nav-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2">
+        <circle cx="7" cy="4.5" r="2" />
+        <path d="M2 13c0-2.76 2.24-5 5-5s5 2.24 5 5" />
+      </svg>
+      about
+    </a>
+  </nav>
+
+  <!-- Map -->
+  <div class="map-outer">
+    <div id="map"></div>
+
+    <!-- Layer controls -->
+    <div class="map-layers" id="map-layers">
+      <div class="map-layers-group-label">places</div>
+      <!-- Populated by JS -->
+      <div class="map-layers-group-label" style="margin-top:0.75rem;">sensory</div>
+      <!-- Populated by JS -->
+    </div>
+
+    <!-- Mapbox token notice (shown if no token) -->
+    <div class="map-token-notice hidden" id="token-notice">
+      <h3>Add your Mapbox token</h3>
+      <p>For nicer map tiles, add <code>"mapboxToken": "pk.your_token"</code> to
+        <code>data/config.json</code>.<br><br>Currently using CartoDB tiles — everything else works fine.</p>
+    </div>
+  </div>
+
+  <!-- Image slideshow overlay -->
+  <div class="slideshow-overlay" id="slideshow">
+    <button class="slideshow-close" onclick="closeSlideshow()">close ×</button>
+    <img class="slideshow-img" id="slideshow-img" src="" alt="">
+    <div class="slideshow-meta">
+      <div class="slideshow-type" id="slideshow-type"></div>
+      <div class="slideshow-title" id="slideshow-title"></div>
+      <div class="slideshow-desc" id="slideshow-desc"></div>
+    </div>
+    <div class="slideshow-nav">
+      <button class="slideshow-btn" onclick="slideshowStep(-1)">← prev</button>
+      <span class="slideshow-counter" id="slideshow-counter"></span>
+      <button class="slideshow-btn" onclick="slideshowStep(1)">next →</button>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="data.js"></script>
+  <script>
+
+    // ── Icon SVGs — replace these with your own designs ───────────────────
+    const ICONS = {
+      restaurant: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="20" height="20"><path d="M5 3v18M5 9c0-3.5 6-3.5 6 0v3H5V9zM15 3v5a3 3 0 006 0V3M18 11v10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+      cafe: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="20" height="20"><path d="M6 2c0 2 2 2 2 4M10 2c0 2 2 2 2 4M4 10h12l-1.5 8H5.5L4 10zM16 12h2a2 2 0 010 4h-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+      trail: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="20" height="20"><path d="M2 20l6-12 4 6 3-4 7 10M2 20h20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+      stay: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="20" height="20"><path d="M3 10.5L12 3l9 7.5V21H3V10.5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 21v-7h6v7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+      establishment: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="20" height="20"><path d="M3 21h18M4 21V8l8-5 8 5v13M9 21v-5h6v5M9 11h2M13 11h2M9 15h2M13 15h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+      spot: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="20" height="20"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6L12 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    };
+
+    const SENSORY_ICONS = {
+      taste: `<svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M12 3c-3 4-5 7-5 10a5 5 0 0010 0c0-3-2-6-5-10z" stroke="currentColor" stroke-width="1.5"/></svg>`,
+      sight: `<svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/></svg>`,
+      sound: `<svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M11 5L6 9H2v6h4l5 4V5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M15.5 8.5a5 5 0 010 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+      smell: `<svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M8 3c0 3 4 3 4 6s-4 3-4 6M13 3c0 3 4 3 4 6s-4 3-4 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+      texture: `<svg viewBox="0 0 24 24" fill="none" width="16" height="16"><circle cx="5" cy="5" r="1.5" fill="currentColor"/><circle cx="12" cy="5" r="1.5" fill="currentColor"/><circle cx="19" cy="5" r="1.5" fill="currentColor"/><circle cx="5" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="19" cy="12" r="1.5" fill="currentColor"/><circle cx="5" cy="19" r="1.5" fill="currentColor"/><circle cx="12" cy="19" r="1.5" fill="currentColor"/><circle cx="19" cy="19" r="1.5" fill="currentColor"/></svg>`,
+      sketch: `<svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M3 21l3-3L19 5l-3-3L3 21zM14 6l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    };
+
+    // ── Type config ───────────────────────────────────────────────────────
+    const PLACE_TYPES = {
+      restaurant: { label: 'restaurant', color: '#b8522e' },
+      cafe: { label: 'café', color: '#c07830' },
+      trail: { label: 'trail', color: '#2c4a3e' },
+      stay: { label: 'stay', color: '#4a6a9e' },
+      establishment: { label: 'establishment', color: '#7a5a1e' },
+      spot: { label: 'spot', color: '#8a5a8a' },
+    };
+
+    const SENSORY_TYPES = {
+      taste: { label: 'taste', color: '#b8522e' },
+      sight: { label: 'sight', color: '#4a6a9e' },
+      sound: { label: 'sound', color: '#2c4a3e' },
+      smell: { label: 'smell', color: '#7a5a1e' },
+      texture: { label: 'texture', color: '#8a5a8a' },
+      sketch: { label: 'sketch', color: '#5a5a5a' },
+    };
+
+    // ── GPX parser — fetches a .gpx file and returns [[lat,lng], ...] ────
+    async function loadGPX(url) {
+      try {
+        const r = await fetch(url + '?_=' + Date.now());
+        if (!r.ok) return null;
+        const xml = new DOMParser().parseFromString(await r.text(), 'application/xml');
+        return Array.from(xml.querySelectorAll('trkpt, rtept, wpt'))
+          .map(pt => [parseFloat(pt.getAttribute('lat')), parseFloat(pt.getAttribute('lon'))])
+          .filter(c => !isNaN(c[0]) && !isNaN(c[1]));
+      } catch { return null; }
+    }
+
+    // ── Slideshow state ───────────────────────────────────────────────────
+    let slideshowItems = [];
+    let slideshowIdx = 0;
+
+    function openSlideshow(items, startIdx) {
+      slideshowItems = items;
+      slideshowIdx = startIdx || 0;
+      renderSlide();
+      document.getElementById('slideshow').classList.add('open');
+    }
+
+    function closeSlideshow() {
+      document.getElementById('slideshow').classList.remove('open');
+    }
+
+    function slideshowStep(dir) {
+      slideshowIdx = (slideshowIdx + dir + slideshowItems.length) % slideshowItems.length;
+      renderSlide();
+    }
+
+    function renderSlide() {
+      const item = slideshowItems[slideshowIdx];
+      document.getElementById('slideshow-img').src = item.image || '';
+      document.getElementById('slideshow-type').textContent = item.type || '';
+      document.getElementById('slideshow-title').textContent = item.title || '';
+      document.getElementById('slideshow-desc').textContent = item.description || '';
+      document.getElementById('slideshow-counter').textContent =
+        `${slideshowIdx + 1} / ${slideshowItems.length}`;
+      // Hide nav if only one item
+      document.querySelector('.slideshow-nav').style.display =
+        slideshowItems.length > 1 ? 'flex' : 'none';
+    }
+
+    // Close on ESC
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSlideshow(); });
+
+    // ── Make a Leaflet divIcon marker ─────────────────────────────────────
+    function makeMarker(color, svgInner, size = 32) {
+      return L.divIcon({
+        className: '',
+        html: `<div class="map-marker" style="
+      width:${size}px; height:${size}px;
+      background:${color};
+      border-radius:50% 50% 50% 0;
+      transform: rotate(-45deg);
+      border: 2px solid rgba(255,255,255,0.9);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      display:flex; align-items:center; justify-content:center;
+    ">
+      <div style="transform:rotate(45deg); color:white; display:flex; align-items:center; justify-content:center;">
+        ${svgInner}
+      </div>
+    </div>`,
+        iconSize: [size, size],
+        iconAnchor: [size / 2, size],
+        popupAnchor: [0, -size - 4],
+      });
+    }
+
+    function makeSensoryMarker(entry) {
+      if (entry.image) {
+        // Image thumbnail marker
+        return L.divIcon({
+          className: '',
+          html: `<img class="marker-img" src="${entry.image}" alt="${entry.title}"
+        style="width:40px;height:40px;object-fit:cover;border-radius:2px;
+               border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.2);
+               cursor:pointer;display:block;">`,
+          iconSize: [40, 40],
+          iconAnchor: [20, 20],
+          popupAnchor: [0, -24],
+        });
+      }
+      const cfg = SENSORY_TYPES[entry.type] || { color: '#888' };
+      return L.divIcon({
+        className: '',
+        html: `<div style="width:20px;height:20px;background:${cfg.color};
+              border-radius:50%;border:2px solid rgba(255,255,255,0.9);
+              box-shadow:0 1px 4px rgba(0,0,0,0.2);cursor:pointer;"></div>`,
+        iconSize: [20, 20], iconAnchor: [10, 10], popupAnchor: [0, -14],
+      });
+    }
+
+    // ── Build popup HTML ─────────────────────────────────────────────────
+    function placePopup(p, dispatchMap) {
+      const cfg = PLACE_TYPES[p.type] || { label: p.type, color: '#888' };
+      const dispatch = p.dispatchId ? dispatchMap[p.dispatchId] : null;
+      return `
+    <div style="min-width:190px;">
+      <div class="map-popup-type" style="color:${cfg.color}">${cfg.label}${p.area ? ' · ' + p.area : ''}</div>
+      <div class="map-popup-name">${p.name}</div>
+      ${p.note ? `<div class="map-popup-note">${p.note}</div>` : ''}
+      ${p.date ? `<div style="font-family:var(--font-mono);font-size:0.58rem;color:var(--ink-light);margin-bottom:6px;">${p.date}</div>` : ''}
+      ${dispatch ? `<a class="map-popup-link" href="index.html#${p.dispatchId}" target="_blank">read post → ${dispatch.title}</a>` : ''}
+    </div>`;
+    }
+
+    // ── Build layer toggle button ─────────────────────────────────────────
+    function addLayerToggle(container, label, color, layerGroup, map) {
+      const btn = document.createElement('button');
+      btn.className = 'layer-toggle visible';
+      btn.innerHTML = `<span class="layer-dot" style="background:${color}"></span>${label}`;
+      btn.addEventListener('click', () => {
+        if (btn.classList.contains('visible')) {
+          map.removeLayer(layerGroup);
+          btn.classList.remove('visible');
+        } else {
+          map.addLayer(layerGroup);
+          btn.classList.add('visible');
+        }
+      });
+      container.appendChild(btn);
+    }
+
+    // ── Main ─────────────────────────────────────────────────────────────
+    async function init() {
+      const [config, places, sensory] = await Promise.all([
+        loadJSON('config.json'),
+        loadJSON('places.json'),
+        loadJSON('sensory.json'),
+      ]);
+
+      applyPlaceColors(config?.places || {});
+
+      const token = config?.mapboxToken;
+      const leafMap = L.map('map', { zoomControl: true });
+
+      if (token) {
+        // Mapbox tiles
+        L.tileLayer(
+          `https://api.mapbox.com/styles/v1/${config.mapboxStyle || 'mapbox/light-v11'}/tiles/{z}/{x}/{y}?access_token=${token}`,
+          { tileSize: 512, zoomOffset: -1, attribution: '© Mapbox © OpenStreetMap', maxZoom: 19 }
+        ).addTo(leafMap);
+      } else {
+        // CartoDB Positron — clean minimal tiles, no API key needed
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+          attribution: '© CartoDB © OpenStreetMap',
+          subdomains: 'abcd',
+          maxZoom: 19,
+        }).addTo(leafMap);
+        // Show subtle notice
+        // document.getElementById('token-notice').classList.remove('hidden');
+      }
+
+      // Build dispatch lookup for popup links
+      const dispatches = await loadJSON('dispatches.json') || [];
+      const dispatchMap = {};
+      dispatches.forEach(d => { if (d.id) dispatchMap[d.id] = d; });
+
+      // ── Place layers ──
+      const layersContainer = document.getElementById('map-layers');
+      const placeLayers = {};
+      const bounds = [];
+
+      if (places?.length) {
+        places.forEach(p => {
+          if (p.lat == null || p.lng == null) return;
+          if (p.type === 'trail') return; // handled separately
+
+          const cfg = PLACE_TYPES[p.type] || PLACE_TYPES.spot;
+          if (!placeLayers[p.type]) {
+            placeLayers[p.type] = L.layerGroup().addTo(leafMap);
+          }
+
+          const icon = ICONS[p.type] || ICONS.spot;
+          const m = L.marker([p.lat, p.lng], {
+            icon: makeMarker(cfg.color, icon, 30)
+          });
+          m.bindPopup(placePopup(p, dispatchMap), { maxWidth: 260 });
+          placeLayers[p.type].addLayer(m);
+          bounds.push([p.lat, p.lng]);
+        });
+
+        // Pre-load GPX for any trail that has a gpx path instead of inline coords
+        await Promise.all(
+          places.filter(p => p.type === 'trail' && p.gpx && !p.trailCoords)
+            .map(async p => { p.trailCoords = await loadGPX(p.gpx); })
+        );
+
+        // Trails as polylines (trailCoords from inline JSON or parsed GPX)
+        const trailLayer = L.layerGroup().addTo(leafMap);
+        places.filter(p => p.type === 'trail' && p.trailCoords?.length).forEach(p => {
+          const line = L.polyline(p.trailCoords, {
+            color: PLACE_TYPES.trail.color,
+            weight: 2.5,
+            opacity: 0.7,
+          });
+          const startMarker = L.marker(p.trailCoords[0], {
+            icon: makeMarker(PLACE_TYPES.trail.color, ICONS.trail, 28)
+          });
+          startMarker.bindPopup(placePopup(p, dispatchMap), { maxWidth: 260 });
+          trailLayer.addLayer(line);
+          trailLayer.addLayer(startMarker);
+          p.trailCoords.forEach(c => bounds.push(c));
+        });
+        placeLayers['trail'] = trailLayer;
+
+        // Journey path — connects all inPath places in date order
+        const pathPoints = places
+          .filter(p => p.inPath && p.lat != null && p.type !== 'trail')
+          .sort((a, b) => parseDate(a.date) - parseDate(b.date));
+        if (pathPoints.length > 1) {
+          L.polyline(pathPoints.map(p => [p.lat, p.lng]), {
+            color: '#b8522e', weight: 2, opacity: 0.45, dashArray: '6 10', lineJoin: 'round'
+          }).addTo(leafMap);
+        }
+      }
+
+      // ── Place layer toggles ──
+      const placeGroup = document.createElement('div');
+      Object.entries(placeLayers).forEach(([type, layer]) => {
+        const cfg = PLACE_TYPES[type] || { label: type, color: '#888' };
+        addLayerToggle(placeGroup, cfg.label, cfg.color, layer, leafMap);
+      });
+      // Insert after the "places" label
+      layersContainer.children[1].insertAdjacentElement('beforebegin', placeGroup);
+
+      // ── Sensory layers ──
+      if (sensory?.length) {
+        const sensoryLayers = {};
+        const sensoryWithImages = sensory.filter(s => s.image);
+
+        sensory.forEach(s => {
+          // Find coords from a matching place
+          const ref = places?.find(p => p.area === s.place || p.id === s.place);
+          if (!ref?.lat) return;
+          const jitter = () => (Math.random() - 0.5) * 0.002;
+
+          if (!sensoryLayers[s.type]) {
+            sensoryLayers[s.type] = L.layerGroup().addTo(leafMap);
+          }
+
+          const m = L.marker([ref.lat + jitter(), ref.lng + jitter()], {
+            icon: makeSensoryMarker(s)
+          });
+
+          if (s.image) {
+            // Click opens slideshow
+            m.on('click', () => {
+              openSlideshow(sensoryWithImages, sensoryWithImages.indexOf(s));
+            });
+          } else {
+            const cfg = SENSORY_TYPES[s.type] || { label: s.type, color: '#888' };
+            m.bindPopup(`
+          <div style="min-width:170px;">
+            <div class="map-popup-type" style="color:${cfg.color}">${cfg.label}</div>
+            <div class="map-popup-name">${s.title}</div>
+            ${s.description ? `<div class="map-popup-note">${s.description}</div>` : ''}
+            ${s.location ? `<div style="font-family:var(--font-mono);font-size:0.58rem;color:var(--ink-light);">${s.location}</div>` : ''}
+          </div>`, { maxWidth: 240 });
+          }
+
+          sensoryLayers[s.type].addLayer(m);
+        });
+
+        // Sensory layer toggles
+        const sensoryGroup = document.createElement('div');
+        Object.entries(sensoryLayers).forEach(([type, layer]) => {
+          const cfg = SENSORY_TYPES[type] || { label: type, color: '#888' };
+          addLayerToggle(sensoryGroup, cfg.label, cfg.color, layer, leafMap);
+        });
+        layersContainer.appendChild(sensoryGroup);
+      }
+
+      // ── Fit bounds ──
+      if (bounds.length) leafMap.fitBounds(bounds, { padding: [80, 80] });
+      else leafMap.setView([32.22, 76.32], 12);
+
+      // ── Highlight place from URL (?place=id) ──
+      const urlPlace = new URLSearchParams(location.search).get('place');
+      if (urlPlace) {
+        const target = places?.find(p => p.id === urlPlace);
+        if (target?.lat) {
+          setTimeout(() => leafMap.setView([target.lat, target.lng], 15), 300);
+        }
+      }
+    }
+
+    init();
+  </script>
+</body>
+
+</html>

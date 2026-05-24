@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>about — travelogue</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;1,400&family=JetBrains+Mono:wght@300&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .site-header {
+      height: 100px;
+      background-image:
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.18) 0px, rgba(255, 255, 255, 0.18) 1px, transparent 1px, transparent 5px),
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.18) 0px, rgba(255, 255, 255, 0.18) 1px, transparent 1px, transparent 5px),
+        url('assets/images/header-mountains.png'),
+        linear-gradient(180deg, #c8d8e8 0%, #e0ccd4 60%, #c8b8c8 100%);
+      background-size: 5px 5px, 5px 5px, cover, cover;
+      background-position: 0 0, 0 0, bottom center, 0 0;
+      background-repeat: repeat, repeat, no-repeat, no-repeat;
+    }
+
+    .about-body {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 3.5rem 2rem 6rem;
+    }
+
+    .about-body p {
+      font-size: 1.05rem;
+      color: var(--ink-mid);
+      line-height: 1.8;
+      margin-bottom: 1.25em;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="site-header">
+    <div class="header-text">
+      <div class="header-title">simar's travelogue</div>
+      <div class="header-sub">about</div>
+    </div>
+  </header>
+
+  <nav class="site-nav">
+    <a href="index.html" target="_blank" rel="noopener">
+      <svg class="nav-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2">
+        <path d="M2 3h10M2 7h7M2 11h5" />
+      </svg>
+      logs
+    </a>
+    <a href="map.html" target="_blank" rel="noopener">
+      <svg class="nav-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2">
+        <circle cx="7" cy="6" r="2.5" />
+        <path d="M7 1v1M7 11v2M1 6h1M12 6h1" />
+        <path d="M5 9.5C5 9.5 7 13 7 13s2-3.5 2-3.5" />
+      </svg>
+      maps
+    </a>
+    <a href="archives.html" target="_blank" rel="noopener">
+      <svg class="nav-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2">
+        <rect x="1" y="1" width="5" height="5" />
+        <rect x="8" y="1" width="5" height="5" />
+        <rect x="1" y="8" width="5" height="5" />
+        <rect x="8" y="8" width="5" height="5" />
+      </svg>
+      archives
+    </a>
+    <a href="about.html" class="active" target="_blank" rel="noopener">
+      <svg class="nav-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2">
+        <circle cx="7" cy="4.5" r="2" />
+        <path d="M2 13c0-2.76 2.24-5 5-5s5 2.24 5 5" />
+      </svg>
+      about
+    </a>
+  </nav>
+
+  <div class="about-body">
+    <!-- Write whatever you want here -->
+    <p>Write your about text here.</p>
+  </div>
+
+</body>
+
+</html>

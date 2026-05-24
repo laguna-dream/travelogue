@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>admin — travelogue</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;1,400&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f2efea; --paper: #ede8e0; --ink: #1a1815;
+      --ink-mid: #524c44; --ink-light: #9a9088;
+      --border: #dbd5cc; --border-light: #e8e3dc;
+      --rust: #b8522e; --green: #2c4a3e;
+      --font-serif: 'EB Garamond', Georgia, serif;
+      --font-mono:  'JetBrains Mono', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.6;
+      padding: 2rem;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .admin-header { margin-bottom: 2rem; }
+    .admin-header h1 { font-family: var(--font-serif); font-size: 1.8rem; font-weight: 400; }
+    .admin-header p  { color: var(--rust); font-size: 0.68rem; letter-spacing: 0.15em; text-transform: uppercase; margin-top: 0.2rem; }
+
+    /* Tabs */
+    .tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 2rem; }
+    .tab {
+      background: none; border: none; border-bottom: 2px solid transparent;
+      margin-bottom: -1px; padding: 0.6rem 1.75rem;
+      font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--ink-light); cursor: pointer; transition: all 0.15s;
+    }
+    .tab:hover { color: var(--ink); }
+    .tab.active { color: var(--rust); border-bottom-color: var(--rust); }
+
+    /* Panels */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* Fields */
+    .field { margin-bottom: 1.1rem; }
+    .field label {
+      display: block; font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--ink-light); margin-bottom: 0.35rem;
+    }
+    input, textarea, select {
+      width: 100%; background: white; border: 1px solid var(--border);
+      padding: 0.55rem 0.75rem; font-family: var(--font-mono); font-size: 0.8rem;
+      color: var(--ink); outline: none; transition: border-color 0.15s;
+    }
+    input:focus, textarea:focus, select:focus { border-color: var(--rust); }
+    textarea { resize: vertical; min-height: 140px; }
+    select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%239a9088'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.75rem center; }
+    .hint { font-size: 0.62rem; color: var(--ink-light); margin-top: 0.3rem; font-style: italic; }
+
+    .row  { display: grid; grid-template-columns: 1fr 1fr;     gap: 1rem; }
+    .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+
+    /* Drop zone */
+    .drop-zone {
+      border: 1px dashed var(--border); padding: 1.5rem; text-align: center;
+      color: var(--ink-light); cursor: pointer; transition: all 0.15s;
+      font-family: var(--font-serif); font-size: 0.95rem; font-style: italic;
+      margin-bottom: 1.25rem;
+    }
+    .drop-zone:hover, .drop-zone.over { border-color: var(--ink-mid); color: var(--ink); background: rgba(0,0,0,0.01); }
+    .drop-zone .drop-name { font-family: var(--font-mono); font-size: 0.72rem; font-style: normal; margin-top: 0.5rem; color: var(--rust); }
+
+    /* Generate button */
+    .gen-btn {
+      background: var(--ink); color: var(--bg); border: none;
+      padding: 0.6rem 2rem; font-family: var(--font-mono); font-size: 0.68rem;
+      letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer;
+      transition: background 0.15s; margin-top: 0.25rem;
+    }
+    .gen-btn:hover { background: var(--rust); }
+
+    /* Output */
+    .output { margin-top: 1.75rem; display: none; }
+    .output.show { display: block; }
+    .output-label { font-size: 0.6rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--green); margin-bottom: 0.5rem; }
+    .code-block {
+      background: #1a1815; color: #e8dfc8; padding: 1.1rem 1.25rem;
+      font-size: 0.78rem; line-height: 1.6; white-space: pre; overflow-x: auto;
+    }
+    .copy-btn {
+      background: none; border: 1px solid var(--border); padding: 0.35rem 1.1rem;
+      font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--ink-light); cursor: pointer;
+      margin-top: 0.6rem; transition: all 0.15s;
+    }
+    .copy-btn:hover  { color: var(--ink); border-color: var(--ink); }
+    .copy-btn.copied { color: var(--green); border-color: var(--green); }
+    .file-note { font-size: 0.68rem; color: var(--ink-light); margin-top: 0.6rem; line-height: 1.5; }
+    .file-note strong { color: var(--ink-mid); }
+    code { font-family: var(--font-mono); background: white; border: 1px solid var(--border-light); padding: 0.1em 0.4em; font-size: 0.85em; }
+
+    hr { border: none; border-top: 1px solid var(--border-light); margin: 1.5rem 0; }
+
+    /* How to use */
+    .howto { font-family: var(--font-serif); font-size: 0.95rem; line-height: 1.75; color: var(--ink-mid); }
+    .howto h3 { font-weight: 400; color: var(--ink); margin: 1.5rem 0 0.5rem; font-size: 1.1rem; }
+    .howto h3:first-child { margin-top: 0; }
+    .howto ul { padding-left: 1.25rem; }
+    .howto li { margin-bottom: 0.35rem; }
+
+    @media (max-width: 600px) { .row, .row3 { grid-template-columns: 1fr; } body { padding: 1.25rem; } }
+  </style>
+</head>
+<body>
+
+<div class="admin-header">
+  <h1>Entry Builder</h1>
+  <p>travelogue — local tool, don't deploy</p>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="dispatch">Dispatch</button>
+  <button class="tab"        data-tab="place">Map Pin</button>
+  <button class="tab"        data-tab="sensory">Sensory</button>
+  <button class="tab"        data-tab="howto">How to use</button>
+</div>
+
+<!-- ── DISPATCH ─────────────────────────────────────────────────────── -->
+<div class="panel active" id="panel-dispatch">
+
+  <div class="drop-zone" id="md-drop" onclick="document.getElementById('md-file').click()">
+    drop a .md or .txt file to auto-fill the body
+    <div class="drop-name" id="md-name"></div>
+  </div>
+  <input type="file" id="md-file" accept=".md,.txt,text/plain,text/markdown" style="display:none">
+
+  <div class="row">
+    <div class="field">
+      <label>ID (used for anchor links from map)</label>
+      <input type="text" id="d-id" placeholder="day-1">
+      <div class="hint">lowercase, hyphens — e.g. day-1, triund-hike</div>
+    </div>
+    <div class="field">
+      <label>Date</label>
+      <input type="text" id="d-date" placeholder="may 23 2026">
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="field">
+      <label>Title</label>
+      <input type="text" id="d-title" placeholder="Day 1">
+    </div>
+    <div class="field">
+      <label>Place (matches config.json place key)</label>
+      <input type="text" id="d-place" placeholder="dharamkot">
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Body — Markdown supported. Use {{place-id}} to reference map pins inline.</label>
+    <textarea id="d-body" placeholder="Your dispatch. **bold**, *italic*, > blockquotes all work.&#10;&#10;Reference a map pin like this: {{shiva-cafe}}"></textarea>
+  </div>
+
+  <div class="field">
+    <label>Tags (comma-separated, optional)</label>
+    <input type="text" id="d-tags" placeholder="arrivals, walking, food">
+  </div>
+
+  <button class="gen-btn" onclick="genDispatch()">Generate JSON entry</button>
+
+  <div class="output" id="dispatch-out">
+    <div class="output-label">Paste into data/dispatches.json array</div>
+    <div class="code-block" id="dispatch-json"></div>
+    <button class="copy-btn" onclick="copyOutput('dispatch-json', this)">copy</button>
+  </div>
+</div>
+
+<!-- ── MAP PIN ───────────────────────────────────────────────────────── -->
+<div class="panel" id="panel-place">
+
+  <div class="row">
+    <div class="field">
+      <label>ID (used in {{double-braces}} in dispatches)</label>
+      <input type="text" id="p-id" placeholder="shiva-cafe">
+    </div>
+    <div class="field">
+      <label>Name</label>
+      <input type="text" id="p-name" placeholder="Shiva Café">
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="field">
+      <label>Type</label>
+      <select id="p-type">
+        <option value="restaurant">restaurant</option>
+        <option value="cafe">café</option>
+        <option value="trail">trail</option>
+        <option value="stay">stay</option>
+        <option value="establishment">establishment</option>
+        <option value="spot">spot</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Area (matches config.json place key)</label>
+      <input type="text" id="p-area" placeholder="dharamkot">
+    </div>
+  </div>
+
+  <div class="row3">
+    <div class="field">
+      <label>Latitude</label>
+      <input type="number" id="p-lat" placeholder="32.2265" step="any">
+    </div>
+    <div class="field">
+      <label>Longitude</label>
+      <input type="number" id="p-lng" placeholder="76.3195" step="any">
+      <div class="hint">Right-click in Google Maps → copy coords</div>
+    </div>
+    <div class="field">
+      <label>Date visited</label>
+      <input type="text" id="p-date" placeholder="may 23">
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Note (shown in map popup)</label>
+    <textarea id="p-note" style="min-height:80px;" placeholder="The lamb shoulder. Order the lamb shoulder."></textarea>
+  </div>
+
+  <!-- GPX — only shown when type = trail -->
+  <div class="field" id="gpx-field" style="display:none">
+    <label>GPX file (trail)</label>
+    <div class="drop-zone" id="gpx-drop" onclick="document.getElementById('gpx-file').click()" style="padding:1rem;font-size:0.88rem;">
+      drop .gpx file or click to browse
+      <div class="drop-name" id="gpx-name"></div>
+    </div>
+    <input type="file" id="gpx-file" accept=".gpx" style="display:none">
+    <input type="text" id="p-gpx" placeholder="assets/gpx/trail-name.gpx" style="margin-top:0.5rem;">
+    <div class="hint">Move the .gpx file to assets/gpx/ after generating the entry</div>
+  </div>
+
+  <div class="row">
+    <div class="field">
+      <label>Dispatch ID (links popup → blog post)</label>
+      <input type="text" id="p-dispatch" placeholder="day-1">
+      <div class="hint">Must match the id field of a dispatch entry</div>
+    </div>
+    <div class="field">
+      <label>Include in route path?</label>
+      <select id="p-inpath">
+        <option value="false">No</option>
+        <option value="true">Yes — connect to route line</option>
+      </select>
+    </div>
+  </div>
+
+  <button class="gen-btn" onclick="genPlace()">Generate JSON entry</button>
+
+  <div class="output" id="place-out">
+    <div class="output-label">Paste into data/places.json array</div>
+    <div class="code-block" id="place-json"></div>
+    <button class="copy-btn" onclick="copyOutput('place-json', this)">copy</button>
+  </div>
+</div>
+
+<!-- ── SENSORY ───────────────────────────────────────────────────────── -->
+<div class="panel" id="panel-sensory">
+
+  <div class="drop-zone" id="sensory-drop" onclick="document.getElementById('sensory-file').click()">
+    drop an image, audio, or video file
+    <div class="drop-name" id="sensory-name"></div>
+    <div id="sensory-preview"></div>
+  </div>
+  <input type="file" id="sensory-file" accept="image/*,audio/*,video/*" style="display:none">
+
+  <div class="row">
+    <div class="field">
+      <label>Type</label>
+      <select id="s-type">
+        <option value="taste">taste</option>
+        <option value="sight">sight</option>
+        <option value="sound">sound</option>
+        <option value="smell">smell</option>
+        <option value="texture">texture</option>
+        <option value="sketch">sketch</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Place (area tag — e.g. dharamkot)</label>
+      <input type="text" id="s-place" placeholder="dharamkot">
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Title</label>
+    <input type="text" id="s-title" placeholder="ginger chai, 6am">
+  </div>
+
+  <div class="field">
+    <label>Description</label>
+    <textarea id="s-desc" style="min-height:90px;" placeholder="Your description..."></textarea>
+  </div>
+
+  <div class="row">
+    <div class="field">
+      <label>Location (shown in archive card)</label>
+      <input type="text" id="s-location" placeholder="Shiva Café, upper dharamkot">
+    </div>
+    <div class="field">
+      <label>File path (auto-filled if you drop a file)</label>
+      <input type="text" id="s-image" placeholder="assets/images/filename.jpg">
+    </div>
+  </div>
+
+  <button class="gen-btn" onclick="genSensory()">Generate JSON entry</button>
+
+  <div class="output" id="sensory-out">
+    <div class="output-label">Paste into data/sensory.json array</div>
+    <div class="code-block" id="sensory-json"></div>
+    <button class="copy-btn" onclick="copyOutput('sensory-json', this)">copy</button>
+    <div class="file-note" id="sensory-file-note"></div>
+  </div>
+</div>
+
+<!-- ── HOW TO USE ────────────────────────────────────────────────────── -->
+<div class="panel" id="panel-howto">
+  <div class="howto">
+    <h3>Run locally</h3>
+    Open this file via your local server: <code>python3 -m http.server 8000</code> → <code>localhost:8000/admin.html</code>
+
+    <h3>Dispatch</h3>
+    <ul>
+      <li>Drop a <code>.md</code> or <code>.txt</code> file to auto-fill the body field</li>
+      <li>The <strong>ID</strong> field is important — it's what the map uses to link popups back to posts. Use something like <code>day-1</code> or <code>triund-hike</code></li>
+      <li>The <strong>place</strong> field must match a key in <code>data/config.json → places</code> (e.g. <code>dharamkot</code>, <code>bir</code>)</li>
+      <li>Reference a map pin inline with <code>{{shiva-cafe}}</code> — it renders as a small clickable chip</li>
+    </ul>
+
+    <h3>Map pin</h3>
+    <ul>
+      <li>The <strong>ID</strong> is what you use in <code>{{double-braces}}</code> in dispatch bodies</li>
+      <li>Get coords: right-click anywhere in Google Maps → first number is lat, second is lng</li>
+      <li>Setting <strong>dispatchId</strong> adds a "read post →" link in the map popup</li>
+      <li>For trails, set type to <code>trail</code> — you can add <code>trailCoords</code> manually as a lat/lng array after generating</li>
+      <li>Set <strong>inPath: true</strong> on places to connect them with a dashed route line</li>
+    </ul>
+
+    <h3>Sensory entry</h3>
+    <ul>
+      <li>Drop an image to get a preview and auto-fill the file path</li>
+      <li>The <strong>place</strong> field ties this entry to the map — sensory pins appear near that area's coordinates</li>
+      <li>After generating, move your file to: <code>assets/images/</code> (images) or <code>assets/sounds/</code> (audio)</li>
+      <li>Image entries show as photo thumbnails on the map — clicking them opens the slideshow</li>
+    </ul>
+
+    <h3>Adding entries to JSON files</h3>
+    Copy the generated JSON object and paste it at the <strong>top</strong> of the array in the relevant data file (newest first). Make sure to add a comma after your new entry. Then save, <code>git add . && git commit -m "..."</code>, push.
+
+    <h3>Working Copy (mobile)</h3>
+    Install Working Copy on iPhone, connect to your GitHub repo. You can edit any JSON file directly from your phone and commit — site updates automatically.
+  </div>
+</div>
+
+<script>
+// ── Tab switching ─────────────────────────────────────────────────────
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ── Trail type → show/hide GPX field ─────────────────────────────────
+document.getElementById('p-type').addEventListener('change', e => {
+  document.getElementById('gpx-field').style.display = e.target.value === 'trail' ? 'block' : 'none';
+});
+
+// GPX file drop
+const gpxDrop = document.getElementById('gpx-drop');
+const gpxFile = document.getElementById('gpx-file');
+gpxDrop.addEventListener('dragover',  e => { e.preventDefault(); gpxDrop.classList.add('over'); });
+gpxDrop.addEventListener('dragleave', () => gpxDrop.classList.remove('over'));
+gpxDrop.addEventListener('drop', e => {
+  e.preventDefault(); gpxDrop.classList.remove('over');
+  if (e.dataTransfer.files[0]) handleGPXFile(e.dataTransfer.files[0]);
+});
+gpxFile.addEventListener('change', e => { if (e.target.files[0]) handleGPXFile(e.target.files[0]); });
+function handleGPXFile(file) {
+  document.getElementById('gpx-name').textContent = file.name;
+  document.getElementById('p-gpx').value = 'assets/gpx/' + file.name;
+  document.getElementById('p-gpx').dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+// ── Markdown file drop ────────────────────────────────────────────────
+const mdDrop = document.getElementById('md-drop');
+const mdFile = document.getElementById('md-file');
+
+mdDrop.addEventListener('dragover',  e => { e.preventDefault(); mdDrop.classList.add('over'); });
+mdDrop.addEventListener('dragleave', ()=> mdDrop.classList.remove('over'));
+mdDrop.addEventListener('drop', e => {
+  e.preventDefault(); mdDrop.classList.remove('over');
+  if (e.dataTransfer.files[0]) readTextFile(e.dataTransfer.files[0]);
+});
+mdFile.addEventListener('change', e => { if (e.target.files[0]) readTextFile(e.target.files[0]); });
+
+function readTextFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('d-body').value = e.target.result;
+    document.getElementById('md-name').textContent = file.name;
+    // Auto-fill title from filename if empty
+    if (!document.getElementById('d-title').value) {
+      document.getElementById('d-title').value = file.name.replace(/\.(md|txt)$/, '').replace(/-/g, ' ');
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ── Sensory file drop ─────────────────────────────────────────────────
+const sDrop = document.getElementById('sensory-drop');
+const sFile = document.getElementById('sensory-file');
+
+sDrop.addEventListener('dragover',  e => { e.preventDefault(); sDrop.classList.add('over'); });
+sDrop.addEventListener('dragleave', ()=> sDrop.classList.remove('over'));
+sDrop.addEventListener('drop', e => {
+  e.preventDefault(); sDrop.classList.remove('over');
+  if (e.dataTransfer.files[0]) readMediaFile(e.dataTransfer.files[0]);
+});
+sFile.addEventListener('change', e => { if (e.target.files[0]) readMediaFile(e.target.files[0]); });
+
+function readMediaFile(file) {
+  const reader  = new FileReader();
+  const isImage = file.type.startsWith('image/');
+  const isAudio = file.type.startsWith('audio/');
+  const folder  = isImage ? 'images' : isAudio ? 'sounds' : 'images';
+
+  reader.onload = e => {
+    const preview = document.getElementById('sensory-preview');
+    if (isImage) {
+      preview.innerHTML = `<img src="${e.target.result}" style="max-height:120px;max-width:100%;object-fit:contain;margin-top:0.75rem;display:block;">`;
+      document.getElementById('s-type').value = 'sight';
+    } else if (isAudio) {
+      preview.innerHTML = `<audio controls src="${e.target.result}" style="width:100%;margin-top:0.75rem;"></audio>`;
+      document.getElementById('s-type').value = 'sound';
+    } else {
+      preview.innerHTML = '';
+    }
+  };
+  reader.readAsDataURL(file);
+
+  document.getElementById('sensory-name').textContent = file.name;
+  document.getElementById('s-image').value = `assets/${folder}/${file.name}`;
+}
+
+// ── Generators ────────────────────────────────────────────────────────
+function fmt(obj) { return JSON.stringify(obj, null, 2); }
+
+function genDispatch() {
+  const tags = document.getElementById('d-tags').value
+    .split(',').map(t => t.trim()).filter(Boolean);
+  const obj = {};
+  const id    = document.getElementById('d-id').value.trim();
+  const place = document.getElementById('d-place').value.trim();
+  if (id)    obj.id    = id;
+  obj.date  = document.getElementById('d-date').value  || '';
+  obj.title = document.getElementById('d-title').value || 'Untitled';
+  if (place) obj.place = place;
+  obj.body  = document.getElementById('d-body').value  || '';
+  if (tags.length) obj.tags = tags;
+
+  document.getElementById('dispatch-json').textContent = fmt(obj);
+  document.getElementById('dispatch-out').classList.add('show');
+}
+
+function genPlace() {
+  const dispatchId = document.getElementById('p-dispatch').value.trim();
+  const obj = {
+    id:   document.getElementById('p-id').value.trim()   || 'place-id',
+    name: document.getElementById('p-name').value.trim() || 'Untitled',
+    type: document.getElementById('p-type').value,
+    area: document.getElementById('p-area').value.trim() || '',
+    lat:  parseFloat(document.getElementById('p-lat').value) || 0,
+    lng:  parseFloat(document.getElementById('p-lng').value) || 0,
+    note: document.getElementById('p-note').value.trim() || '',
+    date: document.getElementById('p-date').value.trim() || '',
+    inPath: document.getElementById('p-inpath').value === 'true',
+  };
+  if (dispatchId) obj.dispatchId = dispatchId;
+  const gpxPath = document.getElementById('p-gpx').value.trim();
+  if (obj.type === 'trail' && gpxPath) obj.gpx = gpxPath;
+  if (!obj.area) delete obj.area;
+  if (!obj.note) delete obj.note;
+  if (!obj.date) delete obj.date;
+
+  document.getElementById('place-json').textContent = fmt(obj);
+  document.getElementById('place-out').classList.add('show');
+}
+
+function genSensory() {
+  const image = document.getElementById('s-image').value.trim();
+  const obj   = {
+    type:  document.getElementById('s-type').value,
+    title: document.getElementById('s-title').value.trim() || 'Untitled',
+  };
+  const desc     = document.getElementById('s-desc').value.trim();
+  const place    = document.getElementById('s-place').value.trim();
+  const location = document.getElementById('s-location').value.trim();
+  if (desc)     obj.description = desc;
+  if (place)    obj.place       = place;
+  if (location) obj.location    = location;
+  if (image)    obj.image       = image;
+
+  document.getElementById('sensory-json').textContent = fmt(obj);
+  document.getElementById('sensory-out').classList.add('show');
+
+  const fname = document.getElementById('sensory-name').textContent;
+  if (fname) {
+    const folder = image.includes('sounds') ? 'assets/sounds' : 'assets/images';
+    document.getElementById('sensory-file-note').innerHTML =
+      `<strong>Move your file to:</strong> <code>${folder}/${fname}</code>`;
+  }
+}
+
+// ── Copy ──────────────────────────────────────────────────────────────
+function copyOutput(id, btn) {
+  navigator.clipboard.writeText(document.getElementById(id).textContent).then(() => {
+    btn.textContent = 'copied ✓';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// ── Live generation: JSON updates as you type ─────────────────────────
+function autoGen(panelId, fn) {
+  document.querySelectorAll('#' + panelId + ' input, #' + panelId + ' textarea, #' + panelId + ' select')
+    .forEach(el => el.addEventListener('input', fn));
+}
+autoGen('panel-dispatch', genDispatch);
+autoGen('panel-place',    genPlace);
+autoGen('panel-sensory',  genSensory);
+
+// Accept plain-text drops onto any textarea (drag selected text from another app)
+document.querySelectorAll('textarea').forEach(ta => {
+  ta.addEventListener('dragover', e => e.preventDefault());
+  ta.addEventListener('drop', e => {
+    const text = e.dataTransfer.getData('text/plain');
+    if (!text) return;
+    e.preventDefault();
+    const start = ta.selectionStart;
+    const end   = ta.selectionEnd;
+    ta.value = ta.value.slice(0, start) + text + ta.value.slice(end);
+    ta.selectionStart = ta.selectionEnd = start + text.length;
+    ta.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+});
+</script>
+</body>
+</html>

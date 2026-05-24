@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>archives — travelogue</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=JetBrains+Mono:wght@300;400&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .site-header {
+      height: 100px;
+      background-image:
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.18) 0px, rgba(255, 255, 255, 0.18) 1px, transparent 1px, transparent 5px),
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.18) 0px, rgba(255, 255, 255, 0.18) 1px, transparent 1px, transparent 5px),
+        url('assets/images/header-mountains.png'),
+        linear-gradient(180deg, #c8d8e8 0%, #e0ccd4 60%, #c8b8c8 100%);
+      background-size: 5px 5px, 5px 5px, cover, cover;
+      background-position: 0 0, 0 0, bottom center, 0 0;
+      background-repeat: repeat, repeat, no-repeat, no-repeat;
+    }
+
+    .archive-wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2.5rem 2rem 5rem;
+    }
+
+    /* JSON Generator panel */
+    .gen-panel {
+      background: rgba(255, 255, 255, 0.6);
+      border: 1px solid var(--border);
+      padding: 1.75rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .gen-panel summary {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-light);
+      cursor: pointer;
+      list-style: none;
+    }
+
+    .gen-panel summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .gen-panel summary::before {
+      content: '+ ';
+    }
+
+    details[open] summary::before {
+      content: '− ';
+    }
+
+    .gen-panel summary:hover {
+      color: var(--ink);
+    }
+
+    .gen-inner {
+      margin-top: 1.5rem;
+    }
+
+    .gen-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .gen-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .gen-label {
+      font-family: var(--font-mono);
+      font-size: 0.58rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-light);
+    }
+
+    .gen-input,
+    .gen-select,
+    .gen-textarea {
+      background: white;
+      border: 1px solid var(--border);
+      padding: 0.5rem 0.7rem;
+      font-family: var(--font-serif);
+      font-size: 0.95rem;
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.15s;
+      width: 100%;
+    }
+
+    .gen-input:focus,
+    .gen-select:focus,
+    .gen-textarea:focus {
+      border-color: var(--ink-mid);
+    }
+
+    .gen-textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .gen-select {
+      appearance: none;
+    }
+
+    .gen-btn {
+      background: var(--ink);
+      color: var(--bg);
+      border: none;
+      padding: 0.55rem 1.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      margin-top: 0.5rem;
+    }
+
+    .gen-btn:hover {
+      opacity: 0.8;
+    }
+
+    .gen-output {
+      margin-top: 1.25rem;
+      display: none;
+    }
+
+    .gen-output.show {
+      display: block;
+    }
+
+    .gen-output-label {
+      font-family: var(--font-mono);
+      font-size: 0.58rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-light);
+      margin-bottom: 0.5rem;
+    }
+
+    .gen-code {
+      background: #1a1815;
+      color: #e8dfc8;
+      padding: 1rem 1.25rem;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      line-height: 1.6;
+      white-space: pre;
+      overflow-x: auto;
+    }
+
+    .copy-btn {
+      background: none;
+      border: 1px solid var(--border);
+      padding: 0.3rem 1rem;
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink-light);
+      cursor: pointer;
+      margin-top: 0.6rem;
+      transition: all 0.15s;
+    }
+
+    .copy-btn:hover {
+      color: var(--ink);
+      border-color: var(--ink);
+    }
+
+    .copy-btn.copied {
+      color: var(--ink);
+    }
+
+    .file-path-note {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--ink-light);
+      margin-top: 0.6rem;
+      line-height: 1.5;
+    }
+
+    .file-path-note strong {
+      color: var(--ink-mid);
+    }
+
+    /* Preview in drop zone */
+    .drop-preview {
+      margin-top: 0.75rem;
+    }
+
+    .drop-preview img {
+      max-height: 140px;
+      max-width: 100%;
+      object-fit: contain;
+    }
+
+    .drop-preview audio {
+      width: 100%;
+      margin-top: 0.5rem;
+    }
+
+    .drop-filename {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--ink-mid);
+      margin-top: 0.4rem;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="header-text">
+      <div class="header-title">simar's travelogue</div>
+      <div class="header-sub">archives</div>
+    </div>
+  </header>
+
+  <!-- NAV -->
+  <nav class="site-nav">
+    <a href="index.html" target="_blank" rel="noopener">
+      <svg class="nav-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2">
+        <path d="M2 3h10M2 7h7M2 11h5" />
+      </svg>
+      logs
+    </a>
+    <a href="map.html" target="_blank" rel="noopener">
+      <svg class="nav-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2">
+        <circle cx="7" cy="6" r="2.5" />
+        <path d="M7 1v1M7 11v2M1 6h1M12 6h1" />
+        <path d="M5 9.5C5 9.5 7 13 7 13s2-3.5 2-3.5" />
+      </svg>
+      maps
+    </a>
+    <a href="archives.html" class="active" target="_blank" rel="noopener">
+      <svg class="nav-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2">
+        <rect x="1" y="1" width="5" height="5" />
+        <rect x="8" y="1" width="5" height="5" />
+        <rect x="1" y="8" width="5" height="5" />
+        <rect x="8" y="8" width="5" height="5" />
+      </svg>
+      archives
+    </a>
+    <a href="about.html" target="_blank" rel="noopener">
+      <svg class="nav-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2">
+        <circle cx="7" cy="4.5" r="2" />
+        <path d="M2 13c0-2.76 2.24-5 5-5s5 2.24 5 5" />
+      </svg>
+      about
+    </a>
+  </nav>
+
+  <div class="archive-wrap">
+
+    <!-- Type filters -->
+    <div class="type-filters" id="type-filters">
+      <button class="type-pill active" data-type="all">all</button>
+    </div>
+
+    <!-- Grid -->
+    <div class="archive-grid" id="archive-grid"></div>
+  </div>
+
+  <script src="data.js"></script>
+  <script>
+    // ── Type colors ──
+    const TYPE_COLORS = {
+      taste: '#b8522e',
+      sight: '#4a6a9e',
+      sound: '#2c4a3e',
+      smell: '#7a5a1e',
+      texture: '#8a5a8a',
+      sketch: '#5a5a5a',
+    };
+
+    let all = [];
+
+    async function init() {
+      const [config, sensory] = await Promise.all([
+        loadJSON('config.json'),
+        loadJSON('sensory.json'),
+      ]);
+      applyPlaceColors(config?.places || {});
+      all = sensory || [];
+
+      const types = [...new Set(all.map(s => s.type).filter(Boolean))];
+      buildFilters(types);
+      render(all);
+    }
+
+    function buildFilters(types) {
+      const container = document.getElementById('type-filters');
+      container.querySelector('[data-type="all"]').addEventListener('click', () => {
+        render(all); setActive('all');
+      });
+      types.forEach(t => {
+        const btn = document.createElement('button');
+        btn.className = 'type-pill';
+        btn.dataset.type = t;
+        btn.textContent = t;
+        btn.addEventListener('click', () => { render(all.filter(s => s.type === t)); setActive(t); });
+        container.appendChild(btn);
+      });
+    }
+
+    function setActive(t) {
+      document.querySelectorAll('.type-pill').forEach(p =>
+        p.classList.toggle('active', p.dataset.type === t));
+    }
+
+    function render(items) {
+      const grid = document.getElementById('archive-grid');
+      if (!items.length) {
+        grid.innerHTML = '<div style="padding:2rem;color:var(--ink-light);font-style:italic;background:var(--bg);">Nothing here yet.</div>';
+        return;
+      }
+      grid.innerHTML = '';
+      items.forEach(s => {
+        const color = TYPE_COLORS[s.type] || '#888';
+        const card = document.createElement('div');
+        card.className = 'archive-card';
+        card.innerHTML = `
+      ${s.image ? `<img src="${s.image}" alt="${s.title}" loading="lazy">` : ''}
+      <div class="archive-type" style="color:${color}">${s.type}</div>
+      <h3>${s.title}</h3>
+      ${s.description ? `<p>${s.description}</p>` : ''}
+      ${s.location ? `<div class="archive-location">${s.location}</div>` : ''}
+    `;
+        grid.appendChild(card);
+      });
+    }
+
+    init();
+  </script>
+</body>
+
+</html>
