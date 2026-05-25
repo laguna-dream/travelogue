@@ -83,6 +83,38 @@
     .hidden {
       display: none !important;
     }
+
+    .map-areas {
+      position: absolute;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 500;
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .area-pill {
+      pointer-events: all;
+      background: rgba(242, 239, 234, 0.92);
+      border: 1px solid var(--border);
+      padding: 0.3rem 0.85rem;
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      text-transform: lowercase;
+      color: var(--ink-mid);
+      cursor: pointer;
+      transition: all 0.15s;
+      backdrop-filter: blur(4px);
+      white-space: nowrap;
+    }
+
+    .area-pill:hover { background: white; color: var(--ink); }
+    .area-pill.active { color: var(--ink); border-color: var(--ink-mid); background: white; }
   </style>
 </head>
 
@@ -133,6 +165,9 @@
   <!-- Map -->
   <div class="map-outer">
     <div id="map"></div>
+
+    <!-- Area jump pills -->
+    <div class="map-areas" id="map-areas"></div>
 
     <!-- Layer controls -->
     <div class="map-layers" id="map-layers">
@@ -486,8 +521,51 @@
       }
 
       // ── Fit bounds ──
-      if (bounds.length) leafMap.fitBounds(bounds, { padding: [80, 80] });
+      const allBounds = [...bounds];
+      if (allBounds.length) leafMap.fitBounds(allBounds, { padding: [80, 80] });
       else leafMap.setView([32.22, 76.32], 12);
+
+      // ── Area jump pills ──
+      const areasContainer = document.getElementById('map-areas');
+      const areaKeys = Object.keys(config?.places || {})
+        .filter(a => places?.some(p => p.area === a));
+
+      if (areaKeys.length > 0) {
+        if (areaKeys.length > 1) {
+          const allPill = document.createElement('button');
+          allPill.className = 'area-pill active';
+          allPill.textContent = 'all';
+          allPill.addEventListener('click', () => {
+            if (allBounds.length) leafMap.flyToBounds(allBounds, { padding: [80, 80], duration: 1 });
+            setActivePill(allPill);
+          });
+          areasContainer.appendChild(allPill);
+        }
+
+        areaKeys.forEach(area => {
+          const pill = document.createElement('button');
+          pill.className = 'area-pill';
+          pill.textContent = area;
+          const color = config.places[area]?.color;
+          if (color) pill.style.borderLeftColor = color;
+          pill.addEventListener('click', () => {
+            const pts = places.filter(p => p.area === area && p.lat != null);
+            if (!pts.length) return;
+            if (pts.length === 1) {
+              leafMap.flyTo([pts[0].lat, pts[0].lng], 14, { duration: 1 });
+            } else {
+              leafMap.flyToBounds(pts.map(p => [p.lat, p.lng]), { padding: [80, 80], duration: 1 });
+            }
+            setActivePill(pill);
+          });
+          areasContainer.appendChild(pill);
+        });
+      } // end areaKeys.length > 0
+
+      function setActivePill(active) {
+        areasContainer.querySelectorAll('.area-pill').forEach(p => p.classList.remove('active'));
+        active.classList.add('active');
+      }
 
       // ── Highlight place from URL (?place=id) ──
       const urlPlace = new URLSearchParams(location.search).get('place');
